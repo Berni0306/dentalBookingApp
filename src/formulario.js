@@ -7,6 +7,7 @@ function Formulario() {
     formState: {errors},
     reset
   } = useForm();
+  
 
   const onSubmit = handleSubmit((data)=>{
     console.log(data)
