@@ -1,0 +1,216 @@
+/* Formulario.css */
+body {
+    font-family: Arial, sans-serif;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #e0f7fa;
+    }
+    
+    .form-container {
+      display: flex;
+      width: 1400px;
+      height: 792px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      flex-direction: row; /* Por defecto, los elementos se alinean en fila */
+    }
+  
+    .image-section {
+      background: url('/images/image1.jpg') center/cover no-repeat;
+      margin: auto;
+      margin-top: 0px;
+      width: 250px;
+      height: 250px;
+      margin-bottom: 20px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 0px solid rgba(255, 255, 255, 0.8); /* Borde redondeado */
+      }
+    
+    .map-section {
+      flex: 1;
+    }
+    
+    form{
+      display: inline-block;
+      justify-content: center;
+      align-items: center;
+    }
+  
+    .form-section {
+      flex: 1;
+      padding-top: 40px;
+      padding-left: 60px;
+      padding-right: 60px;
+      padding-bottom: 40px;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .form-section h1 {
+      margin: 0 0 20px;
+      font-size: 2em;
+    }
+    
+    .form-section p {
+      margin: 0 0 20px;
+      font-size: 1.2em;
+      color: #666;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+    }
+    
+    .input-group input{
+      width: 500px;
+      padding: 12px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  
+    .labelDate{
+      display: flex;
+      padding-left: 12px;
+      margin-bottom: 5px;
+      color: gray;
+    }
+  
+    .placeholderDate {
+      color: gray;
+    }
+  
+    .input-group select{
+      width: 526px;
+      height: 44px;
+      padding: 12px;
+      font-size: 0.8em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  
+    button {
+      width: 526px;
+      padding: 15px;
+      height: 44px;
+      font-size: 1em;
+      margin-top: 20px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button:hover {
+      background-color: #005fb3;
+    }
+  
+    .warning {
+      display: flex;
+      color: tomato;
+      font-size: x-small;
+      padding-left: 15px;
+    }
+  
+    /* Media query para pantallas más pequeñas */
+  @media (max-width: 768px) {
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e0f7fa;
+      height: auto;
+      width: auto;
+      justify-content: center;
+      }
+  
+    .form-container {
+      flex-direction: column; /* Cambia a columna en pantallas pequeñas */
+      justify-content: center;
+      width: inherit;
+      height: 880px;
+      margin-top: 12px;
+      margin-bottom: 12px;
+  
+        /* Permite que el contenedor se ajuste a su contenido */
+    }
+  
+    .image-section {
+      order: 1; /* Asegura que la imagen aparezca primero */
+      background: url('/images/image1.jpg') center/cover no-repeat;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      border-radius: 50%;
+      overflow: hidden;
+      height: 200px;
+      width: 200px;
+      border: 0px solid rgba(255, 255, 255, 0.8); /* Borde redondeado */
+    }
+  
+    .form-section {
+      order: 2; /* Asegura que el formulario aparezca segundo */
+      background-color: rgba(255, 255, 255, 0.8);
+      width: auto;
+      padding: 0;
+    }
+  
+    .map-section {
+      order: 3; /* Asegura que el mapa aparezca último */
+      width: 350px;
+      display: flex;
+    }
+  
+    .form-section h1 {
+      margin: 0 0 10px;
+      font-size: 1.5em;
+    }
+    
+    .form-section p {
+      width: auto;
+      margin: 0 0 10px;
+      font-size: 1.2em;
+      color: #666;
+    }
+  
+    .input-group {
+      margin-bottom: 10px;
+    }
+  
+    .input-group input {
+      width: 200px;
+      padding: 12px;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  
+    .input-group select {
+      width: 226px;
+      padding: 12px;
+      font-size: 0.8em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  
+    button {
+      width: 226px;
+      font-size: 1em;
+      margin-bottom: 20px;
+      height: 44px;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-top: 10px;
+    }
+  
+  }
