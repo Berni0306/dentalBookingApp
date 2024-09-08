@@ -1,24 +1,65 @@
 // Formulario.js
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import './formulario.css';
 
 function Formulario() {
-  const {register, handleSubmit, 
+  const {register, 
+    handleSubmit, 
     formState: {errors},
-    reset
+    reset,
   } = useForm();
 
-  const onSubmit = handleSubmit((data)=>{
+  const [dateSelected, setDateSelected] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState([]); // Estado para manejar los horarios disponibles
+
+  // URL del backend (cambia la URL según la configuración de tu servidor)
+  const backendUrl = "http://localhost:3001/available-times";
+
+  const onSubmit = handleSubmit(async (data)=>{
     console.log(data)
-    //send json file if backend response is ok continue
     alert("Cita agendada con Exito!")
     reset()
+    setDateSelected(false);
+    setAvailableTimes([]);
   });
+
+  const handleDateChange = async (e) => {
+    const today = new Date();
+    const  selectedDate = e.target.value;
+    const appointmentDate = new Date(e.target.value);
+    today.setHours(0, 0, 0, 0);
+    appointmentDate.setHours(0, 0, 0, 0);
+    const diffInMs = appointmentDate - today;
+    const diffInSeconds = diffInMs / 1000;
+    if (diffInSeconds > 86399) {
+      setDateSelected(true); // Muestra el selector de horario si la fecha es válida
+
+      try {
+        const response = await fetch(`${backendUrl}?date=${selectedDate}`);
+        if (response.ok) {
+          const availableTimes = await response.json(); // Suponiendo que el backend responde con un array de horarios
+          setAvailableTimes(availableTimes); // Actualiza el estado con los horarios disponibles
+        } else {
+          console.error("Error al obtener los horarios.");
+          setAvailableTimes([]); // Reinicia los horarios si hay un error
+        }
+      } catch (error) {
+        console.error("Error en la solicitud:", error);
+        setAvailableTimes([]); // Reinicia los horarios si hay un error
+      }
+
+    } else {
+      setDateSelected(false);
+      setAvailableTimes([]);  // Reinicia los horarios disponibles
+    }
+  };
 
   return (
     <div className="form-container">
+
+      { /*doctorMap*/ }
       <div 
-      ////////////////////////////////////////////Map////////////////////////////
       className="map-section">
         <iframe
           title="Google Maps"
@@ -31,16 +72,18 @@ function Formulario() {
         ></iframe>
       </div>
       <div className="form-section">
+
+      { /*doctorImage*/ }  
       <div 
-      ////////////////////////////////////////image/////////////////////////////////
       className="image-section">
       </div>
         <h1>C.D. Fernanda Romero</h1>
         <p>Cuidando tu sonrisa</p>
         <form onSubmit={onSubmit}>
+
+        { /*nameField*/ }
           <div className="input-group">
             <input
-            ////////////////////////////////////////name////////////////////////
               type="text"
               placeholder="Tu nombre"
               {...register("name", {
@@ -62,9 +105,10 @@ function Formulario() {
               errors.name && <span className='warning'>{errors.name.message}</span>
             }
           </div> 
+
+          { /*phoneField*/ }
           <div className="input-group">
             <input
-            ////////////////////////////////////////////////cel//////////////////////
               type="tel"
               placeholder="Tu celular"
               {...register("cel", {
@@ -82,35 +126,31 @@ function Formulario() {
               errors.cel && <span className='warning'>{errors.cel.message}</span>
             }
           </div>
+
+          { /*appointmentDate*/ }
           <div className= "input-group">
-            <label className='labelDate' htmlFor="appointmentDate">Selecciona fecha:</label>
+            <label className='labelDate' htmlFor="appointmentDate"></label>
               <input
-              /////////////////////////////////////////////////////appointmentDate//////////////////
                 type="date"
-                placeholder="" className='placeholderDate'
+                className='placeholderDate'
                 {...register("appointmentDate", {
                   required: {
                     value: true,
                     message: "Fecha requerida"
                   }
-                  ,
-                  validate: (value) => {
-                    const today = new  Date()
-                    const appointmentDate = new Date(value)
-                    const validDate = (appointmentDate-today)/1000
-                    // Minimo 24 horas antes la cita
-                    return validDate > 86399 || "Fecha invalida"
-                  }
                 })}
+                onChange={handleDateChange} // Usa el evento onChange directamente
               />
             {
               errors.appointmentDate && <span className='warning'>{errors.appointmentDate.message}</span>
             } 
           </div>
+
+          { /*appointmentTime*/ }
+          {dateSelected && (
           <div className= "input-group">
-            <label className='labelDate' htmlFor="appointmentTime">Selecciona horario:</label>
+            <label className='labelDate' htmlFor="appointmentTime"></label>
               <select
-              /////////////////////////////////////////////////////appointmentTime//////////////////
                 placeholder="Horario" className='placeholderDate'
                 {...register("appointmentTime", {
                   required: {
@@ -118,16 +158,20 @@ function Formulario() {
                     message: "Horario requerido"
                   }
                 })}
+                defaultValue="" // Usa defaultValue para seleccionar el valor por defecto
               >
-                <option className='option'>10:00 am</option>
-                <option className='option'>11:00 am</option>
-                <option className='option'>12:00 am</option>
-                <option className='option'>13:00 am</option>
+                <option value="" disabled>Selecciona un horario</option>
+                {availableTimes.map((time, index) => (
+                  <option key={index} value={time}>{time}</option>
+                ))}
               </select>
             {
               errors.appointmentTime && <span className='warning'>{errors.appointmentTime.message}</span>
             } 
           </div>
+          )}
+
+          { /*button*/ }
           <button type="submit">Agendar Cita</button>
         </form>
       </div>
