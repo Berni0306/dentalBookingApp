@@ -63,10 +63,6 @@ body {
     
     .labelDate {
       font-size: 10px; /* Tamaño de fuente pequeño */
-      color: gray;     /* Color claro */
-      position: absolute; /* Asegúrate de que esté posicionado correctamente */
-      top: -10px; /* Ajusta la posición para que no interfiera con el input */
-      left: 10px;
       transition: opacity 0.3s ease; /* Transición suave para desaparecer */
     }
 
