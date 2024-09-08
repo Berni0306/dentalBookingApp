@@ -12,6 +12,7 @@ function Formulario() {
 
   const [dateSelected, setDateSelected] = useState(false);
   const [availableTimes, setAvailableTimes] = useState([]); // Estado para manejar los horarios disponibles
+  const [isDateSelected, setIsDateSelected] = useState(false);
 
   // URL del backend (cambia la URL según la configuración de tu servidor)
   const backendUrl = "http://localhost:3001/available-times";
@@ -26,7 +27,8 @@ function Formulario() {
 
   const handleDateChange = async (e) => {
     const today = new Date();
-    const  selectedDate = e.target.value;
+    const selectedDate = e.target.value;
+    setIsDateSelected(!!selectedDate); // Si hay una fecha seleccionada, el label desaparecerá
     const appointmentDate = new Date(e.target.value);
     today.setHours(0, 0, 0, 0);
     appointmentDate.setHours(0, 0, 0, 0);
@@ -129,7 +131,9 @@ function Formulario() {
 
           { /*appointmentDate*/ }
           <div className= "input-group">
-            <label className='labelDate' htmlFor="appointmentDate"></label>
+            {!isDateSelected && (
+              <label className='labelDate' htmlFor="appointmentDate">Selecciona una fecha</label>
+            )}
               <input
                 type="date"
                 className='placeholderDate'
@@ -149,7 +153,6 @@ function Formulario() {
           { /*appointmentTime*/ }
           {dateSelected && (
           <div className= "input-group">
-            <label className='labelDate' htmlFor="appointmentTime"></label>
               <select
                 placeholder="Horario" className='placeholderDate'
                 {...register("appointmentTime", {
