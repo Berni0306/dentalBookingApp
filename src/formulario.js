@@ -8,52 +8,84 @@ function Formulario() {
     handleSubmit, 
     formState: {errors},
     reset,
+    clearErrors
   } = useForm();
 
-  const [dateSelected, setDateSelected] = useState(false);
-  const [availableTimes, setAvailableTimes] = useState([]); // Estado para manejar los horarios disponibles
+  const [availableTimes, setAvailableTimes] = useState([]);
   const [isDateSelected, setIsDateSelected] = useState(false);
+  const [dateError, setDateError] = useState('');
 
-  // URL del backend (cambia la URL según la configuración de tu servidor)
-  const backendUrl = "http://localhost:3001/available-times";
+  const backendUrl = "http://localhost:8080/";
 
   const onSubmit = handleSubmit(async (data)=>{
-    console.log(data)
-    alert("Cita agendada con Exito!")
-    reset()
-    setDateSelected(false);
-    setAvailableTimes([]);
+    const startDateTime = `${data.appointmentDate}T${data.appointmentTime}:00-06:00`;
+   
+    const appointmentDateTime = new Date(`${data.appointmentDate}T${data.appointmentTime}:00-06:00`);
+    appointmentDateTime.setHours(appointmentDateTime.getHours() + 1);
+    const formattedEndDateTime = `${appointmentDateTime.getFullYear()}-${String(appointmentDateTime.getMonth() + 1)
+      .padStart(2, '0')}-${String(appointmentDateTime.getDate())
+        .padStart(2, '0')}T${String(appointmentDateTime.getHours())
+          .padStart(2, '0')}:${String(appointmentDateTime.getMinutes())
+            .padStart(2, '0')}:00-06:00`;
+
+    const jsonData = {
+      summary: `${data.name} : ${data.cel}`, //Nombre y celular
+      start: startDateTime,                //Fecha y hora de inicio
+      end: formattedEndDateTime      //Fecha y hora de end
+    };
+    console.log(JSON.stringify(jsonData, null, 2));
+    try {
+      const response = await fetch(`${backendUrl}create-event`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(jsonData),
+      });
+
+      if (response.ok) {
+        console.log("Cita agendada con éxito", await response.json());
+        alert("Cita agendada con éxito!");
+        reset();
+        setAvailableTimes([]);
+      } else {
+        console.error("Error al agendar cita");
+        alert("Error al agendar cita");
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      alert("Ocurrió un error al agendar la cita");
+    }
   });
 
   const handleDateChange = async (e) => {
     const today = new Date();
     const selectedDate = e.target.value;
-    setIsDateSelected(!!selectedDate); // Si hay una fecha seleccionada, el label desaparecerá
+    setIsDateSelected(!!selectedDate); // Si hay una fecha seleccionada label out
     const appointmentDate = new Date(e.target.value);
+    
     today.setHours(0, 0, 0, 0);
-    appointmentDate.setHours(0, 0, 0, 0);
-    const diffInMs = appointmentDate - today;
-    const diffInSeconds = diffInMs / 1000;
-    if (diffInSeconds > 86399) {
-      setDateSelected(true); // Muestra el selector de horario si la fecha es válida
-
+    appointmentDate.setHours(24, 0, 0, 0);
+    console.log(appointmentDate - today)
+    if (appointmentDate - today > 86400000) {  
+      setDateError(''); // Si la fecha es válida, limpiamos el error
+      clearErrors("appointmentDate");
       try {
-        const response = await fetch(`${backendUrl}?date=${selectedDate}`);
+        const response = await fetch(`${backendUrl}available-time?date=${selectedDate}`);
         if (response.ok) {
-          const availableTimes = await response.json(); // Suponiendo que el backend responde con un array de horarios
-          setAvailableTimes(availableTimes); // Actualiza el estado con los horarios disponibles
+          const availableTimes = await response.json();
+          setAvailableTimes(availableTimes);
         } else {
           console.error("Error al obtener los horarios.");
-          setAvailableTimes([]); // Reinicia los horarios si hay un error
+          setAvailableTimes([]);
         }
       } catch (error) {
         console.error("Error en la solicitud:", error);
-        setAvailableTimes([]); // Reinicia los horarios si hay un error
+        setAvailableTimes([]);
       }
-
     } else {
-      setDateSelected(false);
-      setAvailableTimes([]);  // Reinicia los horarios disponibles
+      setDateError("Fecha invalida o no disponible. Seleccione otra.");
+      setAvailableTimes([]);
     }
   };
 
@@ -135,6 +167,7 @@ function Formulario() {
               <label className='labelDate' htmlFor="appointmentDate">Selecciona una fecha</label>
             )}
               <input
+                id='appointmentDate'
                 type="date"
                 className='placeholderDate'
                 {...register("appointmentDate", {
@@ -143,15 +176,18 @@ function Formulario() {
                     message: "Fecha requerida"
                   }
                 })}
-                onChange={handleDateChange} // Usa el evento onChange directamente
+                onChange={handleDateChange}
               />
             {
               errors.appointmentDate && <span className='warning'>{errors.appointmentDate.message}</span>
-            } 
+            }
+            {
+              dateError && <span className='warning'>{dateError}</span>
+            }
           </div>
 
           { /*appointmentTime*/ }
-          {dateSelected && (
+          {(
           <div className= "input-group">
               <select
                 placeholder="Horario" className='placeholderDate'
@@ -161,7 +197,7 @@ function Formulario() {
                     message: "Horario requerido"
                   }
                 })}
-                defaultValue="" // Usa defaultValue para seleccionar el valor por defecto
+                defaultValue=""
               >
                 <option value="" disabled>Selecciona un horario</option>
                 {availableTimes.map((time, index) => (
