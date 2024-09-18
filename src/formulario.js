@@ -11,15 +11,15 @@ function Formulario() {
     clearErrors
   } = useForm();
 
+  const backendUrl = "http://localhost:8080/";
+  const holidays = ['2024-12-25']; //Días feriados (formato YYYY-MM-DD)
+  const appointmentNextDayAvailableTime = 14; //Horario disponible cita un dia antes
   const [availableTimes, setAvailableTimes] = useState([]);
   const [isDateSelected, setIsDateSelected] = useState(false);
   const [dateError, setDateError] = useState('');
 
-  const backendUrl = "http://localhost:8080/";
-
   const onSubmit = handleSubmit(async (data)=>{
     const startDateTime = `${data.appointmentDate}T${data.appointmentTime}:00-06:00`;
-   
     const appointmentDateTime = new Date(`${data.appointmentDate}T${data.appointmentTime}:00-06:00`);
     appointmentDateTime.setHours(appointmentDateTime.getHours() + 1);
     const formattedEndDateTime = `${appointmentDateTime.getFullYear()}-${String(appointmentDateTime.getMonth() + 1)
@@ -33,7 +33,7 @@ function Formulario() {
       start: startDateTime,                //Fecha y hora de inicio
       end: formattedEndDateTime      //Fecha y hora de end
     };
-    console.log(JSON.stringify(jsonData, null, 2));
+
     try {
       const response = await fetch(`${backendUrl}create-event`, {
         method: "POST",
@@ -62,18 +62,31 @@ function Formulario() {
     const today = new Date();
     const selectedDate = e.target.value;
     setIsDateSelected(!!selectedDate); // Si hay una fecha seleccionada label out
-    const appointmentDate = new Date(e.target.value);
+
+    const appointmentDate = new Date(selectedDate);
+    const dayOfWeek = appointmentDate.getUTCDay(); // 0: Domingo, 6: Sábado
     
     today.setHours(0, 0, 0, 0);
     appointmentDate.setHours(24, 0, 0, 0);
-    console.log(appointmentDate - today)
-    if (appointmentDate - today > 86400000) {  
-      setDateError(''); // Si la fecha es válida, limpiamos el error
+    const diffInMs = appointmentDate - today;
+    const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+    if ( (diffInDays < 1) || (dayOfWeek === 0 || dayOfWeek === 6 || holidays.includes(selectedDate))) {  
+      setDateError("Fecha invalida o no disponible. Seleccione otra.");
+      setAvailableTimes([]);
+    } else {
+      setDateError('');
       clearErrors("appointmentDate");
       try {
         const response = await fetch(`${backendUrl}available-time?date=${selectedDate}`);
         if (response.ok) {
-          const availableTimes = await response.json();
+          let availableTimes = await response.json();
+          if (diffInDays === 1){
+              availableTimes = availableTimes.filter(time => {
+                const [hours] = time.split(":");
+                return parseInt(hours, 10) >= appointmentNextDayAvailableTime;
+              });
+          }
           setAvailableTimes(availableTimes);
         } else {
           console.error("Error al obtener los horarios.");
@@ -83,9 +96,6 @@ function Formulario() {
         console.error("Error en la solicitud:", error);
         setAvailableTimes([]);
       }
-    } else {
-      setDateError("Fecha invalida o no disponible. Seleccione otra.");
-      setAvailableTimes([]);
     }
   };
 
