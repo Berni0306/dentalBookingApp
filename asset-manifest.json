@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/dentalBookingApp/static/css/main.bfdcd0bb.css",
-    "main.js": "/dentalBookingApp/static/js/main.f01bca0b.js",
+    "main.js": "/dentalBookingApp/static/js/main.d6ad4491.js",
     "static/js/453.7e9791c1.chunk.js": "/dentalBookingApp/static/js/453.7e9791c1.chunk.js",
     "static/media/image1.jpg": "/dentalBookingApp/static/media/image1.a9233e47ff2c0dbaf8ff.jpg",
     "index.html": "/dentalBookingApp/index.html",
     "main.bfdcd0bb.css.map": "/dentalBookingApp/static/css/main.bfdcd0bb.css.map",
-    "main.f01bca0b.js.map": "/dentalBookingApp/static/js/main.f01bca0b.js.map",
+    "main.d6ad4491.js.map": "/dentalBookingApp/static/js/main.d6ad4491.js.map",
     "453.7e9791c1.chunk.js.map": "/dentalBookingApp/static/js/453.7e9791c1.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.bfdcd0bb.css",
-    "static/js/main.f01bca0b.js"
+    "static/js/main.d6ad4491.js"
   ]
 }
