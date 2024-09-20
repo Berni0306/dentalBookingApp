@@ -11,9 +11,15 @@ function Formulario() {
     clearErrors
   } = useForm();
 
-  const backendUrl = "http://localhost:8080/";
-  const holidays = ['2024-12-25']; //Días feriados (formato YYYY-MM-DD)
-  const appointmentNextDayAvailableTime = 14; //Horario disponible cita un dia antes
+  const backendUrl = process.env.REACT_APP_BACKEND_URL; //url del backend
+  const appointmentNextDayAvailableTime = process.env.REACT_APP_APPOINTMENT_NEXT_DAY_AVAILABLE_TIME; //Horario disponible cita un dia antes 14hrs (2pm)
+  const timePerAppointment = process.env.REACT_APP_TIME_PER_APPOINTMENT; //Tiempo para cada cita ne horas
+  const confirmationMessage = process.env.REACT_APP_CONFIRMATION_MESSAGE;
+  const failureMessage = process.env.REACT_APP_FAILURE_MESSAGE;
+  const minDaysBeforeAppointment = process.env.REACT_APP_MIN_DAYS_BEFORE_APPOINTMENT; //Tiempo minimo para agendar cita en dias
+  const availableTimeErrorMessage = process.env.REACT_APP_AVAILABLE_TIME_ERROR_MESSAGE;
+  const holidays = process.env.REACT_APP_HOLIDAYS.split(','); //Días feriados (formato YYYY-MM-DD)
+  
   const [availableTimes, setAvailableTimes] = useState([]);
   const [isDateSelected, setIsDateSelected] = useState(false);
   const [dateError, setDateError] = useState('');
@@ -21,7 +27,7 @@ function Formulario() {
   const onSubmit = handleSubmit(async (data)=>{
     const startDateTime = `${data.appointmentDate}T${data.appointmentTime}:00-06:00`;
     const appointmentDateTime = new Date(`${data.appointmentDate}T${data.appointmentTime}:00-06:00`);
-    appointmentDateTime.setHours(appointmentDateTime.getHours() + 1);
+    appointmentDateTime.setHours(appointmentDateTime.getHours() + timePerAppointment);
     const formattedEndDateTime = `${appointmentDateTime.getFullYear()}-${String(appointmentDateTime.getMonth() + 1)
       .padStart(2, '0')}-${String(appointmentDateTime.getDate())
         .padStart(2, '0')}T${String(appointmentDateTime.getHours())
@@ -44,34 +50,34 @@ function Formulario() {
       });
 
       if (response.ok) {
-        console.log("Cita agendada con éxito", await response.json());
-        alert("Cita agendada con éxito!");
+        console.log(confirmationMessage, await response.json());
+        alert(confirmationMessage);
         reset();
         setAvailableTimes([]);
       } else {
-        console.error("Error al agendar cita");
-        alert("Error al agendar cita");
+        console.error(failureMessage);
+        alert(failureMessage);
       }
     } catch (error) {
-      console.error("Error en la solicitud:", error);
-      alert("Ocurrió un error al agendar la cita");
+      console.error(failureMessage, error);
+      alert(failureMessage);
     }
   });
 
   const handleDateChange = async (e) => {
     const today = new Date();
     const selectedDate = e.target.value;
-    setIsDateSelected(!!selectedDate); // Si hay una fecha seleccionada label out
+    setIsDateSelected(!!selectedDate);
 
     const appointmentDate = new Date(selectedDate);
-    const dayOfWeek = appointmentDate.getUTCDay(); // 0: Domingo, 6: Sábado
+    const dayOfWeek = appointmentDate.getUTCDay();
     
     today.setHours(0, 0, 0, 0);
     appointmentDate.setHours(24, 0, 0, 0);
     const diffInMs = appointmentDate - today;
     const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 
-    if ( (diffInDays < 1) || (dayOfWeek === 0 || dayOfWeek === 6 || holidays.includes(selectedDate))) {  
+    if ( (diffInDays < minDaysBeforeAppointment) || (dayOfWeek === 0 || dayOfWeek === 6 || holidays.includes(selectedDate))) {  //No working dates (Saturday=6, Sunday=0)
       setDateError("Fecha invalida o no disponible. Seleccione otra.");
       setAvailableTimes([]);
     } else {
@@ -81,7 +87,7 @@ function Formulario() {
         const response = await fetch(`${backendUrl}available-time?date=${selectedDate}`);
         if (response.ok) {
           let availableTimes = await response.json();
-          if (diffInDays === 1){
+          if (diffInDays === minDaysBeforeAppointment){
               availableTimes = availableTimes.filter(time => {
                 const [hours] = time.split(":");
                 return parseInt(hours, 10) >= appointmentNextDayAvailableTime;
@@ -89,11 +95,11 @@ function Formulario() {
           }
           setAvailableTimes(availableTimes);
         } else {
-          console.error("Error al obtener los horarios.");
+          console.error(availableTimeErrorMessage);
           setAvailableTimes([]);
         }
       } catch (error) {
-        console.error("Error en la solicitud:", error);
+        console.error(availableTimeErrorMessage, error);
         setAvailableTimes([]);
       }
     }
