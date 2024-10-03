@@ -25,22 +25,28 @@ function Formulario() {
   const [dateError, setDateError] = useState('');
 
   const onSubmit = handleSubmit(async (data)=>{
-    const startDateTime = `${data.appointmentDate}T${data.appointmentTime}:00-06:00`;
-    const appointmentDateTime = new Date(`${data.appointmentDate}T${data.appointmentTime}:00-06:00`);
-    appointmentDateTime.setHours(appointmentDateTime.getHours() + timePerAppointment);
-    const formattedEndDateTime = `${appointmentDateTime.getFullYear()}-${String(appointmentDateTime.getMonth() + 1)
-      .padStart(2, '0')}-${String(appointmentDateTime.getDate())
-        .padStart(2, '0')}T${String(appointmentDateTime.getHours())
-          .padStart(2, '0')}:${String(appointmentDateTime.getMinutes())
-            .padStart(2, '0')}:00-06:00`;
-
-    const jsonData = {
-      summary: `${data.name} : ${data.cel}`, //Nombre y celular
-      start: startDateTime,                //Fecha y hora de inicio
-      end: formattedEndDateTime      //Fecha y hora de end
-    };
-
     try {
+      const startDateTime = `${data.appointmentDate}T${data.appointmentTime}:00-06:00`;
+      const appointmentDateTime = new Date(`${data.appointmentDate}T${data.appointmentTime}:00-06:00`);
+    
+      if (isNaN(appointmentDateTime.getTime())) {
+        throw new Error("Formato de fecha u hora inválido.");
+      }
+
+      appointmentDateTime.setHours(appointmentDateTime.getHours() + timePerAppointment);
+    
+      const formattedEndDateTime = `${appointmentDateTime.getFullYear()}-${String(appointmentDateTime.getMonth() + 1)
+        .padStart(2, '0')}-${String(appointmentDateTime.getDate())
+          .padStart(2, '0')}T${String(appointmentDateTime.getHours())
+            .padStart(2, '0')}:${String(appointmentDateTime.getMinutes())
+              .padStart(2, '0')}:00-06:00`;
+
+      const jsonData = {
+        summary: `${data.name} : ${data.cel}`, //Nombre y celular
+        start: startDateTime,                //Fecha y hora de inicio
+        end: formattedEndDateTime      //Fecha y hora de end
+      };
+
       const response = await fetch(`${backendUrl}create-event`, {
         method: "POST",
         headers: {
@@ -49,15 +55,14 @@ function Formulario() {
         body: JSON.stringify(jsonData),
       });
 
-      if (response.ok) {
-        console.log(confirmationMessage, await response.json());
-        alert(confirmationMessage);
-        reset();
-        setAvailableTimes([]);
-      } else {
-        console.error(failureMessage);
-        alert(failureMessage);
+      if (!response.ok) {
+        throw new Error(await response.text());
       }
+
+      console.log(confirmationMessage, await response.json());
+      alert(confirmationMessage);
+      reset();
+      setAvailableTimes([]);      
     } catch (error) {
       console.error(failureMessage, error);
       alert(failureMessage);
@@ -96,10 +101,12 @@ function Formulario() {
           setAvailableTimes(availableTimes);
         } else {
           console.error(availableTimeErrorMessage);
+          alert(availableTimeErrorMessage);
           setAvailableTimes([]);
         }
       } catch (error) {
         console.error(availableTimeErrorMessage, error);
+        alert(`${availableTimeErrorMessage}: ${error.message}`);
         setAvailableTimes([]);
       }
     }
